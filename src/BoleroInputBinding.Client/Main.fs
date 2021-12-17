@@ -52,7 +52,7 @@ type Message =
     | Decrement
     | SetCounter of int
     | ResetInput
-    | SetLabel of string
+    | SetInputString of string
     | GetBooks
     | GotBooks of Book[]
     | Error of exn
@@ -71,9 +71,12 @@ let update (http: HttpClient) message model =
         { model with counter = value }, Cmd.none
     
     | ResetInput ->
-        { model with inputString = ""}, Cmd.none
-    | SetLabel s ->
-        { model with label = s}, Cmd.none
+        model, Cmd.ofMsg (SetInputString "")
+    | SetInputString s ->
+        { model with
+            inputString = s
+            label = s.ToUpper()
+        }, Cmd.none
 
     | GetBooks ->
         let getBooks() = http.GetFromJsonAsync<Book[]>("books.json")
@@ -159,7 +162,7 @@ let inputPage model dispatch =
                 attr.``type`` "text"
                 attr.id "textInput"
                 attr.``class`` "input"
-                bind.input.string model.inputString (fun v -> dispatch (SetLabel (v.ToUpper())))
+                bind.input.string model.inputString (fun v -> dispatch (SetInputString v))
             ]
         ]
         p [] [
